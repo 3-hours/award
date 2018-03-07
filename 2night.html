@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>抽奖券night2</title>
+<style>
+	html, body {
+		height: 100%;
+		width:100%;
+	}
+
+	body {
+		width:100%;
+		background-color: #c58a48;
+		background: url(img/bg2.jpg) no-repeat;
+		background-size: 100% auto;
+		margin: 0;
+		font-family: Helvetica, sans-serif;;
+		overflow: hidden;
+	}
+	 .logoImg{
+		width: 100%; 
+		height: 80px;
+		margin:10px auto 0;
+		display: block;
+		text-align: center;
+	}
+	.logoImg img{
+		width: auto;
+	    height: 100%;
+	    display: inline-block;
+	    padding-left: 20px;
+	    float: left;
+	} 
+	a {
+		color: #ffffff;
+	}
+
+	#info {
+		position: absolute;
+		width: 100%;
+		color: #ffffff;
+		padding: 5px;
+		font-family: Monospace;
+		font-size: 13px;
+		font-weight: bold;
+		text-align: center;
+		z-index: 1;
+	}
+	.none {
+		display: none;
+	}
+	.element {
+		width: 140px;
+		height: 180px;
+		line-height: 160px;
+		box-shadow: 0px 0px 12px pink;
+		border: 1px solid #ff5722;
+		text-align: center;
+		cursor: default;
+		background-color: #f44336;
+		overflow: hidden;
+		color: #000;
+		text-align: center;
+		font-size: 64px;
+		transition: transform;
+	}
+	.element1 {
+		width: 180px;
+		height: 319px;
+		background-image: url(img/cl.jpg);
+		background-size: 100%;
+		font-size: 58px;
+		line-height: 160px;
+	}
+	.element2 {
+		width: 142px;
+	    height: 108px;
+		background-image: url(img/hct.jpg);
+		background-size: 100%;
+		font-size: 48px;
+		line-height: 130px;
+	}
+	.element3 {
+		width: 241px;
+	    height: 103px;
+		background-image: url(img/hg.jpg);
+		background-size: 100%;
+		font-size: 50px;
+		line-height: 100px;
+	}
+	.element.selected {
+		font-size: 30px;
+		line-height: 100px;
+	}
+	.rotate {
+		transform-style: preserve-3d;
+	    transform: rotateY(180deg);
+	}
+	#awardlevel {
+		display: inline-block;
+	}
+	#awardText {
+		font-size: 48px;
+	    font-weight: 700;
+	    letter-spacing: .5em;
+	    margin-left:  -3em;
+	}
+	#jiang{
+		font-size: 48px;
+		font-weight: 700;
+		letter-spacing: .5em;
+	}
+	.backimg{
+		display: none;
+	}
+	.dowebok1 { width: 280px; height: 80%;font-size: 14px;position: absolute;right:15px; overflow: hidden;}
+	.dowebok1 ul { margin: 0; line-height: 30px;}
+	.dowebok1 ul li{list-style: none;width: 100%; margin:10px 0;}
+	.dowebok1 ul img{width: 100% ;display: block;}
+	.dowebok1 a { color: #333; text-decoration: none;display: block;}
+	.dowebok1 a:hover { text-decoration: underline;}
+	.rank{line-height: 26px; font-size: 16px; color: #333; font-family: "微软雅黑"; text-align: center;}
+
+</style>
+</head>
+<body>
+
+<script src="js/three.min.js"></script>
+<script src="js/tween.min.js"></script>
+<script src="js/TrackballControls.js"></script>
+<script src="js/CSS3DRenderer.js"></script>
+<script src="js/jquery-1.8.1.min.js"></script>
+
+<div class="logoImg">
+	<!-- <img src="img/logo.png" alt="" /> -->
+	<span id="awardlevel">
+		<span id="awardText"></span><span id="jiang" class="none">奖</span>
+	</span>
+</div>
+<div id="container"></div>
+<div id="info"></div>
+<img src="" alt=""  id="imgsrc" class="backimg none">
+<div class="dowebok1">
+</div>
+<img src="" alt=""  id="rightImgsrc" class="backimg none">
+<script>
+// $(function () {
+	var baseUrl = "http://yy.whitehorse.cn/nianhuichoujiang_test/choujiang/api.php?";
+	var GlobalVariable = {data:{}};
+	var jxpk = 0;
+	var background_image = "";
+	window.indexArr = [];
+	window.getIndexArr = [];
+	$.ajax({
+		url: baseUrl+'config=getCurStatus',
+	    type: "GET",
+	    dataType: "json",
+	    async:"false",
+	    success: function (result) {
+	    	console.log(result)
+	    	if(result.data.jxmc){
+	    		$('#jiang').removeClass("none");
+	    		$('#awardText').text(result.data.jxmc);
+	    	}
+	    	jxpk = result.data.jxpk;
+	    	background_image = result.data.markBgUrl;
+	    	/*var result = {
+	    		data: {
+	    			cnt: 50,
+	    			bgType: '春联'
+	    		}
+	    	}*/
+	    	var selected = result.data.mark;
+	    	if(typeof result.data === 'string') return
+	    	table_len = result.data.cnt;
+	    	table.type = result.data.bgType
+	    	if(table.type == '春联'){
+	    		for(var i=0;i<table_len;i++){
+
+					if(table_len >= 100){
+						table[i] = [i+1,i % 22 ,Math.floor(i / 22) + 1,i % 22 +400];
+					}
+					if(table_len <= 60){
+						table[i] = [i+1,i % 16 +(i % 16)*0.3,Math.floor(i / 16) + 1,i % 16 +(Math.floor(i / 16) + 1)*(-120) +150];
+					}
+					if(selected.indexOf(i+1) >=0) window.getIndexArr.push(i+1);
+	    			else window.indexArr.push(i);
+				}
+	    	}else if(table.type == '亭'){
+	    		for(var i=0;i<table_len;i++){
+					if(table_len >= 145 && table_len <= 153){
+						table[i] = [i+1,i % 17 +1.5,Math.floor(i / 17) + 1,i % 17 +(Math.floor(i / 17) + 1)*80 ];
+						//table[i] = [i+1,i % 18 +1.5,Math.floor(i / 18) + 1,i % 18 +(Math.floor(i / 18) + 1)*80 ];
+					}else{
+						table[i] = [i+1,i % 18 +1.5,Math.floor(i / 18) + 1,i % 18 +(Math.floor(i / 18) + 1)*80 ];
+					}
+					if(selected.indexOf(i+1) >=0) window.getIndexArr.push(i+1);
+	    			else window.indexArr.push(i);
+				}
+	    	}else if(table.type == '画稿'){
+	    		for(var i=0;i<table_len;i++){
+					if(table_len >= 100){
+						table[i] = [i+1,i % 22 ,Math.floor(i / 22) + 1,i % 22 +400];
+					}
+					if(table_len <= 60){
+						table[i] = [i+1,(i % 10)+(i % 10)*0.8+1,Math.floor(i / 10) + 1,i % 10 ];
+					}
+					if(table_len <= 10){
+						table[i] = [i+1,i % 6 + (i % 6)*3,Math.floor(i / 6) + 1,i % 6 +300];
+					}
+					if(selected.indexOf(i+1) >=0) window.getIndexArr.push(i+1);
+	    			else window.indexArr.push(i);
+				}
+	    	}
+			GlobalVariable.data.jxpk = jxpk;
+	    	GlobalVariable.data.cjfs = table.type;
+	    	init();
+	    	animate();
+			// getScrollimg(true);
+	    	setTimeout(function() {
+	    		setTimeout(function () {
+	    			getRedPackage();
+	    			levelAward();
+	    		}, 2000)
+	    	}, 1200)
+
+	    }
+	})
+	
+	//改变几等奖
+	function levelAward(){
+		$.ajax({
+			url: baseUrl+'config=getCurStatus',
+		    type: "GET",
+		    dataType: "json",
+		    async:"false",
+		    success: function (result) {
+                if(result.data.jxpk) {
+                    if(GlobalVariable.data.jxpk != result.data.jxpk || GlobalVariable.data.cjfs != result.data.cjfs)
+                    {
+                        jxpk = result.data.jxpk;
+                        GlobalVariable.data.jxpk = result.data.jxpk;
+                        GlobalVariable.data.cjfs = result.data.cjfs;
+                        getScrollimg(true);
+                        $('#awardText').text(result.data.jxmc);
+                    }
+                }
+		    	if(typeof result.data === 'string') return
+		    }
+		})
+	}
+	var table = []; 
+	var table_len = 0;
+	var rotateFlag = true
+	function getRedPackage () {
+		$.ajax({
+    		url: baseUrl+'config=getCurMark',
+    		type: "GET",
+	        dataType: "json",
+	        async:"false",
+	      success: function (result) {
+	        	console.log(result);
+	        	var status = result.data.isOpen
+	        	var mark = result.data.mark;
+	        	
+	        	if (mark) {
+	        		openRedPackage(mark)
+	        		if (status) {
+    		        	if(window.getIndexArr.indexOf(parseInt(mark))<0){
+	    		        	getPackageAward(mark);
+	    					window.getIndexArr.push(parseInt(mark));	
+    		        	}
+	        		}
+	        	} else {
+	        		if (!status && localStorage.getItem('awardNum')) {
+	        			cancalOpenPackage()
+	        		}
+	        	}
+	        	setTimeout(function () {
+	    			getRedPackage();
+	    			levelAward();
+	    		}, 2000)
+	        }
+    	})
+	}
+
+	var camera, scene, renderer;
+	var controls;
+
+	var objects = [];
+	var targets = { table: [], sphere: [], helix: [], grid: [] };
+
+	
+
+	function init() {
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.z = 2800; // 镜头远近，设置该值控制视觉大小
+
+		scene = new THREE.Scene();
+
+		for ( var i = 0; i < table_len; i++ ) {
+			var needNone = window.getIndexArr.indexOf(i+1)>=0;
+			var element = document.createElement( 'div' );
+			element.className = 'element';
+			if(table.type === '春联') {
+				element.classList.add('element1');
+				if(needNone) element.classList.add('none');
+			} else if (table.type === '亭') {
+				element.classList.add('element2');
+				if(needNone) element.classList.add('none');
+			} else if (table.type === '画稿') {
+				element.classList.add('element3');
+				if(needNone) element.classList.add('none');
+			}
+			
+			element.innerText = table[i][0]
+
+			var object = new THREE.CSS3DObject( element );
+			object.position.x = Math.random() * 4000 - 2000;
+			object.position.y = Math.random() * 4000 - 2000;
+			object.position.z = Math.random() * 4000 - 2000;
+			scene.add( object );
+
+			objects.push( object );
+
+			var object = new THREE.Object3D();
+			// 红包位置
+			object.position.x = ( table[i][1] * 160 ) - 1730;
+			object.position.y = - ( table[i][2] * 240 ) + 720 + table[i][3];
+			targets.table.push( object );
+
+		}
+
+		renderer = new THREE.CSS3DRenderer();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.domElement.style.position = 'absolute';
+		document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+
+		controls = new THREE.TrackballControls( camera, renderer.domElement );
+		controls.rotateSpeed = 0.5;
+		controls.minDistance = 500;
+		controls.maxDistance = 6000;
+		controls.addEventListener( 'change', render );
+
+
+		transform( targets.table, 1000 );
+
+		window.addEventListener( 'resize', onWindowResize, false );
+
+	}
+
+	function transform( targets, duration ) {
+
+		TWEEN.removeAll();
+		if(objects.length >= 100){
+			duration = 1000;
+		}
+		if(objects.length <= 50){
+			duration = 300;
+		}
+		for ( var i = 0; i < objects.length; i ++ ) {
+
+			var object = objects[ i ];
+			var target = targets[ i ];
+
+			new TWEEN.Tween( object.position )
+				.to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+				.easing( TWEEN.Easing.Exponential.InOut )
+				.start();
+
+			new TWEEN.Tween( object.rotation )
+				.to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+				.easing( TWEEN.Easing.Exponential.InOut )
+				.start();
+
+		}
+
+		new TWEEN.Tween( this )
+			.to( {}, duration * 2 )
+			.onUpdate( render )
+			.start();
+
+	}
+
+	function onWindowResize() {
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
+	render();
+
+	}
+
+	function animate() {
+
+	requestAnimationFrame( animate );
+
+	TWEEN.update();
+
+	controls.update();
+
+	}
+
+	function render() {
+
+	renderer.render( scene, camera );
+
+	}
+
+	function rnd(min, max) {
+		// 不包括max
+		return parseInt(Math.random()*(max - min)) + min;
+	}
+
+	function getAwardPicture(mark) {
+		console.log(mark,jxpk);
+		$.ajax({
+    		url: baseUrl+'config=getLottery',
+    		type: "GET",
+	        dataType: "json",
+	        data:{
+	        	"jxpk":jxpk,
+	        	"mark":mark
+	        },
+	        async:"false",
+	        success: function (result) {
+	        	// 实例化一个图片的对象 确定图片加载完毕
+	        	$('#imgsrc').attr('src',result.data.zpwjm);
+	 			var imgReady = document.getElementById('imgsrc');
+	 			window.rightPrizeImg = result.data.zpwjm2;
+    		    imgReady.onload = function(){
+    		        $('.element').eq(parseInt(mark)-1)
+    		        .css({ background: 'url('+result.data.zpwjm+')'}).css({ backgroundSize: "100% auto" }).text('');
+	        	}
+	        }
+    	})
+	}
+	function openRedPackage (num) {
+		var rand = -1;
+		$('.element').each(function (index, item) {
+			if ($(item).text() === num) {
+				rand = index
+			}
+		});
+		if(rand == -1) return;
+		
+		localStorage.setItem("awardNum", num);
+		$('.element').eq(rand).addClass('selected').css({"background-image": "url("+background_image+")"});
+        //$('.element').eq(rand).addClass('selected');
+			new TWEEN.Tween( objects[rand].position )
+					.to( { x: 0 , y: 0, z: 2500 }, 800 )
+					.easing( TWEEN.Easing.Exponential.InOut )
+					.start();
+			new TWEEN.Tween( this )
+				.to( {}, 800 * 2 )
+				.onUpdate( render )
+				.start();
+	}
+	function cancalOpenPackage() {
+		// var rand = num - 1
+		var num = localStorage.getItem('awardNum');
+		var rand = 0;
+		$('.element').each(function (index, item) {
+			if ($(item).text() === num) {
+				rand = index
+			}
+		})
+		$('.element').eq(rand).removeClass('selected').css({"background-image": ""});
+
+		var target = targets.table[rand]; // targets.table 数组中存储的就是显示的红包的信息（位置等）
+		new TWEEN.Tween( objects[rand].position )
+				.to( { x: target.position.x , y:target.position.y, z: target.position.z }, 400 )
+				.easing( TWEEN.Easing.Exponential.InOut )
+				.start();
+		new TWEEN.Tween( this )
+				.to( {}, 800 * 2 )
+				.onUpdate( render )
+				.start();
+		localStorage.clear();
+
+	}
+
+function getPackageAward (num) {
+		getAwardPicture(num);
+		if (!rotateFlag) return
+		rotateFlag = false
+
+		$('.element').each(function (index, item) {
+			if ($(item).text() === num) {
+				num = index
+			}
+		})
+		
+		new TWEEN.Tween( objects[num].rotation )
+				.to( { x: 0 , y: objects[num].rotation.y - Math.PI, z: 0 }, 800 )
+				.easing( TWEEN.Easing.Exponential.InOut )
+				.start();
+		new TWEEN.Tween( this )
+			.to( {}, 800  )
+			.onUpdate( render )
+			.start();
+		setTimeout( function () {
+
+			setTimeout(function () {
+				new TWEEN.Tween( objects[num].position )
+						//.to( { x: window.innerWidth/2, y: window.innerHeight/2 *-1, z:900 }, 800 )
+						.to( { x: window.innerWidth- 600, y: window.innerHeight * -1+250, z:900 }, 800 )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+				new TWEEN.Tween( this )
+					.to( {}, 800 *2 )
+					.onUpdate( render )
+					.onComplete(rightImgList)
+					.start();
+
+				rotateFlag = true
+				setTimeout(function (){
+					$('.element').eq(num).hide()
+
+				}, 1000)
+			}, 2000)
+		}, 1000)
+		
+	}
+
+// 卢代码
+	var n =0;
+	var scrolling = false;
+	// 高度超出父元素 开始滚动
+	window.scroll = function(){
+
+		window.scroller = setInterval(function(){
+			n = n+5;
+			var height = $('.dowebok1 .imgList:eq(0)').height();
+			$('.dowebok1 .imgList:eq(0)').css({'margin-top':-n+'px'});
+			if (height < n) {
+				n = 0;
+				var html = $('.dowebok1 .imgList:first').html();
+				$('.dowebok1  .imgList:first').remove();
+				$('.dowebok1').append('<ul class="imgList" >'+html+'</ul>');
+			};
+		}, 80);
+	}
+
+    // 获取历史中奖券
+	var getScrollimg = function(){
+		clearInterval(window.scroller);
+		scrolling = false;
+		$.ajax({
+			url: baseUrl+'config=lotteryResult',
+			type: 'POST',
+			dataType: 'json',
+			data: {
+				cjfs:GlobalVariable.data.cjfs,
+				jxpk:GlobalVariable.data.jxpk
+			},
+			async:"false",
+		})
+		.done(function(res) {
+			$('.dowebok1').html('<ul class="imgList"></ul>');
+			if (res.data.length < 1) { return false;}
+			$.each(res.data, function(index, item) {
+				 var url = item.zpwjm;
+				 var jxmc = item.jxmc;
+				 var htmlImg = '<li><img src="'+url+'"  alt="" class="right_'+ index +'"/></li>';
+				 $('.dowebok1 .imgList').append(htmlImg);
+				 onloadImg('right_'+index);
+			});   
+		})
+		.fail(function() {
+			console.log("error");
+		})
+		.always(function() {
+			console.log("complete");
+		});
+	}
+	// 图片预加载
+	window.onloadImg = function(className){
+        var img = $('.'+className);
+		img[0].onload = function(){
+            $('.dowebok1 .'+className).parent('li').removeClass('none');
+            var dowebok1H = $('.dowebok1').height();
+            var imgListH = $('.dowebok1 .imgList:first').height();
+            console.log(dowebok1H,imgListH);
+            if (!scrolling) {
+        		if (dowebok1H < imgListH) {
+					var html = $('.dowebok1 .imgList:first').html();
+            		console.log(html)
+			       $('.dowebok1').append('<ul class="imgList" >'+html+'</ul>');
+			    	window.scroll();
+			    	scrolling = true;
+	    	   };
+            }
+	    }
+    }
+    
+    // 开奖后 往右边放奖券
+     function rightImgList(){
+    	$('#rightImgsrc').attr('src',window.rightPrizeImg);
+	 	var imgReady = document.getElementById('rightImgsrc');
+	 	imgReady.onload= function(){
+	 		var htmlImg = '<li><img src="'+window.rightPrizeImg+'"  alt=""/></li>';
+			$('.dowebok1 .imgList').append(htmlImg);
+			console.log(dowebok1H,imgListH)
+			if (!scrolling) {
+				var dowebok1H = $('.dowebok1').height();
+			    var imgListH = $('.dowebok1 .imgList:eq(0)').height();
+				if (dowebok1H < imgListH) {
+					var html = $('.dowebok1 .imgList:eq(0)').html();
+				    $('.dowebok1').append('<ul class="imgList" >'+html+'</ul>');
+				    	window.scroll();
+				    	scrolling = true;
+				}
+			};
+	 	};
+    }
+    
+</script>
+</body>
+</html>
